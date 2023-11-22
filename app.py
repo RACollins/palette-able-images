@@ -23,3 +23,19 @@ if img_file is not None:
     st.image(original, use_column_width=False)
 else:
     st.info("☝️ Upload a .jpg or .png file")
+
+st.sidebar.header("Settings")
+
+colour_var_dict = {}
+nColours = st.sidebar.number_input(
+    "Number of colours", value=None, placeholder="Type a number..."
+)
+for c in range(int(nColours)):
+    colour_var_dict[c] = st.sidebar.color_picker(f"Colour {c+1}", key=c)
+
+for k, v in colour_var_dict.items():
+    st.write(f"{k}: {v}")
+user_food = st.sidebar.selectbox(
+    "What is your favorite food?",
+    ["", "Tom Yum Kung", "Burrito", "Lasagna", "Hamburger", "Pizza"],
+)
