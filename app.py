@@ -49,10 +49,9 @@ def get_palette_info(img):
             palette_info_dict["RGB"].append(
                 (rgb_colour[0], rgb_colour[1], rgb_colour[2])
             )
-            """for i, colour in enumerate(["r", "g", "b"]):
-                palette_info_dict[colour].append(rgb_colour[i])"""
     palette_info_df = pd.DataFrame(palette_info_dict)
     return palette_info_df
+
 
 def df_highlighter(x):
     if isinstance(x, tuple):
@@ -60,7 +59,8 @@ def df_highlighter(x):
         highlight_style = "background-color: {}".format(hex)
     istuple_list = isinstance(x, tuple)
     return [highlight_style if istuple else None for istuple in istuple_list]
-    
+
+
 st.title("Palettise an image")
 
 st.subheader("Input image")
@@ -115,3 +115,7 @@ if palettise:
     st.image(img_new_palette, use_column_width=True)
     img_new_palette_info_df = get_palette_info(img_new_palette)
     st.dataframe(img_new_palette_info_df)
+    st.bar_chart(
+        img_new_palette_info_df.loc[:, ["ColourID", "Frequency"]],
+    )
+    print(img_new_palette_info_df)
