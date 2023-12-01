@@ -1,7 +1,7 @@
 import streamlit as st
 from PIL import Image, ImageColor
 
-# from matplotlib import pyplot as plt
+import altair as alt
 import numpy as np
 import pandas as pd
 
@@ -44,21 +44,13 @@ def get_palette_info(img):
         for rgb_freq, rgb_colour in rgb_colours:
             if palette_freq != rgb_freq:
                 continue
-            palette_info_dict["ColourID"].append(palette_colour)
+            palette_info_dict["ColourID"].append("Colour {}".format(palette_colour))
             palette_info_dict["Frequency"].append(rgb_freq)
             palette_info_dict["RGB"].append(
                 (rgb_colour[0], rgb_colour[1], rgb_colour[2])
             )
     palette_info_df = pd.DataFrame(palette_info_dict)
     return palette_info_df
-
-
-def df_highlighter(x):
-    if isinstance(x, tuple):
-        hex = "#{:02x}{:02x}{:02x}".format(x[0], x[1], x[2])
-        highlight_style = "background-color: {}".format(hex)
-    istuple_list = isinstance(x, tuple)
-    return [highlight_style if istuple else None for istuple in istuple_list]
 
 
 st.title("Palettise an image")
@@ -115,7 +107,26 @@ if palettise:
     st.image(img_new_palette, use_column_width=True)
     img_new_palette_info_df = get_palette_info(img_new_palette)
     st.dataframe(img_new_palette_info_df)
-    st.bar_chart(
-        img_new_palette_info_df.loc[:, ["ColourID", "Frequency"]],
+
+    plot = (
+        alt.Chart(img_new_palette_info_df)
+        .mark_bar()
+        .encode(
+            x=alt.X("ColourID", sort="y"),
+            y="Frequency",
+            color=alt.Color(
+                "ColourID",
+                scale=alt.Scale(
+                    domain=img_new_palette_info_df["ColourID"].tolist(),
+                    range=[
+                        "red",
+                        "green",
+                        "blue",
+                        "black",
+                    ],
+                ),
+            ),
+        )
     )
+    st.altair_chart(plot, use_container_width=True)
     print(img_new_palette_info_df)
