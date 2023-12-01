@@ -31,7 +31,7 @@ def quantise_to_palette(img, palette):
     p.putpalette(palette)
 
     # Now quantize input image to the same palette as our little image
-    return img.convert("RGB").quantize(palette=p)
+    return img.convert("RGB").quantize(palette=p, dither=True)
 
 
 def get_palette_info(img):
@@ -44,13 +44,21 @@ def get_palette_info(img):
         for rgb_freq, rgb_colour in rgb_colours:
             if palette_freq != rgb_freq:
                 continue
-            palette_info_dict["ColourID"].append("Colour {}".format(palette_colour))
+            palette_info_dict["ColourID"].append("Colour {}".format(palette_colour + 1))
             palette_info_dict["Frequency"].append(rgb_freq)
             palette_info_dict["RGB"].append(
                 (rgb_colour[0], rgb_colour[1], rgb_colour[2])
             )
     palette_info_df = pd.DataFrame(palette_info_dict)
     return palette_info_df
+
+
+def rgb2hex(rgb):
+    return "#{:02x}{:02x}{:02x}".format(rgb[0], rgb[1], rgb[2])
+
+
+def hex2rgb(hexcode):
+    return tuple(map(ord, hexcode[1:].decode("hex")))
 
 
 st.title("Palettise an image")
@@ -66,13 +74,16 @@ if img_file is not None:
     }
     st.write(file_details)
     img_original = Image.open(img_file)
+    width, height = img_original.size
+    image_details = {"Width": "{} px".format(width), "Height": "{} px".format(height)}
+    st.write(image_details)
     st.text("Original Image")
     st.image(img_original, use_column_width=True)
 else:
     st.info("☝️ Upload a .jpg or .png file")
 
 
-with st.sidebar.form("sidebbar_form"):
+with st.sidebar.form("sidebar_form"):
     st.header("Settings")
     colour_var_dict = {}
     nColours = st.number_input(
@@ -81,7 +92,6 @@ with st.sidebar.form("sidebbar_form"):
     for c in range(int(nColours)):
         colour_var_dict[c] = st.color_picker(f"Colour {c+1}", key=c)
 
-    width, height = img_original.size
     st.subheader("Resize")
     width = st.number_input(
         "Width (pixels)", value=width, placeholder="Type a number..."
@@ -104,6 +114,7 @@ if palettise:
         ).flatten()
     )
     img_new_palette = quantise_to_palette(img=img_resized, palette=new_palette)
+    st.text("Palettised Image")
     st.image(img_new_palette, use_column_width=True)
     img_new_palette_info_df = get_palette_info(img_new_palette)
     st.dataframe(img_new_palette_info_df)
@@ -112,21 +123,18 @@ if palettise:
         alt.Chart(img_new_palette_info_df)
         .mark_bar()
         .encode(
-            x=alt.X("ColourID", sort="y"),
+            x=alt.X("ColourID"),
             y="Frequency",
             color=alt.Color(
                 "ColourID",
                 scale=alt.Scale(
                     domain=img_new_palette_info_df["ColourID"].tolist(),
                     range=[
-                        "red",
-                        "green",
-                        "blue",
-                        "black",
-                    ],
+                        rgb2hex(rgb) for rgb in img_new_palette_info_df["RGB"].values
+                    ]
+                    + ["#00000"],
                 ),
             ),
         )
     )
     st.altair_chart(plot, use_container_width=True)
-    print(img_new_palette_info_df)
