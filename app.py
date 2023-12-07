@@ -1,5 +1,6 @@
 import streamlit as st
 from PIL import Image, ImageColor
+from io import BytesIO
 
 import altair as alt
 import numpy as np
@@ -22,8 +23,8 @@ if img_file is not None:
     width, height = img_original.size
     image_details = {"Width": "{} px".format(width), "Height": "{} px".format(height)}
     st.write(image_details)
-    st.text("Original Image")
-    st.image(img_original, use_column_width=True)
+    st.header("Original Image")
+    st.image(img_original, use_column_width="auto")
     render_elements = True
 else:
     st.info("☝️ Upload a .jpg or .png file")
@@ -70,14 +71,17 @@ if render_elements:
 
     new_palette = list(
         np.array(
-            [list(ImageColor.getcolor(hex, "RGB")) for c, hex in colour_var_dict.items()]
+            [
+                list(ImageColor.getcolor(hex, "RGB"))
+                for c, hex in colour_var_dict.items()
+            ]
         ).flatten()
     )
     img_new_palette = utils.quantise_to_palette(
         img=img_resized, palette=new_palette, dither=isDither
     )
-    st.text("Palettised Image")
-    st.image(img_new_palette, use_column_width=True)
+    st.header("Palettised Image")
+    st.image(img_new_palette, use_column_width="auto")
     img_new_palette_info_df = utils.get_palette_info(img_new_palette)
     st.dataframe(img_new_palette_info_df)
 
@@ -92,7 +96,8 @@ if render_elements:
                 scale=alt.Scale(
                     domain=img_new_palette_info_df["ColourID"].tolist(),
                     range=[
-                        utils.rgb2hex(rgb) for rgb in img_new_palette_info_df["RGB"].values
+                        utils.rgb2hex(rgb)
+                        for rgb in img_new_palette_info_df["RGB"].values
                     ]
                     + ["#00000"],
                 ),
@@ -100,3 +105,22 @@ if render_elements:
         )
     )
     st.altair_chart(plot, use_container_width=True)
+
+
+    img_file_name = img_file.name.split(".")[0]
+    img_file_type = img_file.name.split(".")[-1]
+    
+    buf = BytesIO()
+    img_new_palette.convert("RGB").save(buf, format=img_file_type.upper())
+    byte_img = buf.getvalue()
+
+    # columns to lay out the download buttons
+    lower_grid = st.columns(2)
+
+    with lower_grid[0]:
+        dwnld_img_btn = st.download_button(
+            label="Download Palettised Image",
+            data=byte_img,
+            file_name="{0}_palettised.{1}".format(img_file_name, img_file_type),
+            mime="image/{}".format(img_file_type),
+        )
