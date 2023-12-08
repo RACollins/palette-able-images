@@ -4,6 +4,7 @@ from io import BytesIO
 
 import altair as alt
 import numpy as np
+import pandas as pd
 import utils
 
 
@@ -98,18 +99,16 @@ if render_elements:
                     range=[
                         utils.rgb2hex(rgb)
                         for rgb in img_new_palette_info_df["RGB"].values
-                    ]
-                    + ["#00000"],
+                    ],
                 ),
             ),
         )
     )
     st.altair_chart(plot, use_container_width=True)
 
-
     img_file_name = img_file.name.split(".")[0]
-    img_file_type = img_file.name.split(".")[-1]
-    
+    img_file_type = img_file.type.split("/")[-1]
+
     buf = BytesIO()
     img_new_palette.convert("RGB").save(buf, format=img_file_type.upper())
     byte_img = buf.getvalue()
@@ -123,4 +122,13 @@ if render_elements:
             data=byte_img,
             file_name="{0}_palettised.{1}".format(img_file_name, img_file_type),
             mime="image/{}".format(img_file_type),
+        )
+    with lower_grid[1]:
+        dwnld_csv_btn = st.download_button(
+            label="Download Template",
+            data=pd.DataFrame(np.array(img_new_palette))
+            .to_csv(index=False)
+            .encode("utf-8"),
+            file_name="{0}_template.csv".format(img_file_name),
+            mime="text/csv",
         )
