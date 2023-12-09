@@ -21,11 +21,12 @@ if img_file is not None:
     }
     st.write(file_details)
     img_original = Image.open(img_file)
-    width, height = img_original.size
-    image_details = {"Width": "{} px".format(width), "Height": "{} px".format(height)}
+    original_width, original_height = img_original.size
+    image_details = {
+        "Width": "{} px".format(original_width),
+        "Height": "{} px".format(original_height),
+    }
     st.write(image_details)
-    st.header("Original Image")
-    st.image(img_original, use_column_width="auto")
     render_elements = True
 else:
     st.info("☝️ Upload a .jpg or .png file")
@@ -51,12 +52,12 @@ if render_elements:
         st.subheader("Resize")
         width = st.number_input(
             "Width (pixels)",
-            value=width,
+            value=original_width,
             placeholder="Type a number...",
         )
         height = st.number_input(
             "Height (pixels)",
-            value=height,
+            value=original_height,
             placeholder="Type a number...",
         )
 
@@ -81,8 +82,24 @@ if render_elements:
     img_new_palette = utils.quantise_to_palette(
         img=img_resized, palette=new_palette, dither=isDither
     )
-    st.header("Palettised Image")
-    st.image(img_new_palette, use_column_width="auto")
+
+    # columns to lay out the images
+    upper_grid = st.columns(2)
+    with upper_grid[0]:
+        st.header("Original Image")
+        st.image(img_original, use_column_width="auto")
+
+    with upper_grid[1]:
+        st.header("Palettised Image")
+        st.image(
+            utils.mosaic(
+                np.array(img_new_palette.convert("RGB")),
+                w=original_width,
+                h=original_height,
+            ),
+            use_column_width="auto",
+        )
+
     img_new_palette_info_df = utils.get_palette_info(img_new_palette)
     st.dataframe(img_new_palette_info_df)
 

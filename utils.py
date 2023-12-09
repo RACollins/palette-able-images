@@ -1,5 +1,6 @@
 from PIL import Image
 import pandas as pd
+import cv2
 
 #################
 ### Functions ###
@@ -57,3 +58,7 @@ def rgb2hex(rgb):
 
 def hex2rgb(hexcode):
     return tuple(map(ord, hexcode[1:].decode("hex")))
+
+
+def mosaic(img, w, h):
+    return cv2.resize(img, (w, h), interpolation=cv2.INTER_NEAREST)
