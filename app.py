@@ -102,7 +102,7 @@ if render_elements:
         img=img_resized, palette=new_palette, dither=isDither
     )
 
-    # columns to lay out the images
+    ### Columns to lay out the images
     upper_grid = st.columns(2)
     with upper_grid[0]:
         st.header("Original Image")
@@ -142,14 +142,18 @@ if render_elements:
     )
     st.altair_chart(plot, use_container_width=True)
 
+    ### Prepare data to download
+    # Images
     img_file_name = img_file.name.split(".")[0]
     img_file_type = img_file.type.split("/")[-1]
-
     buf = BytesIO()
     img_new_palette.convert("RGB").save(buf, format=img_file_type.upper())
     byte_img = buf.getvalue()
 
-    # columns to lay out the download buttons
+    # Template
+    img_new_palette_dwnld = np.array(img_new_palette) + 1
+
+    ### Columns to lay out the download buttons
     lower_grid = st.columns(2)
 
     with lower_grid[0]:
@@ -162,8 +166,8 @@ if render_elements:
     with lower_grid[1]:
         dwnld_csv_btn = st.download_button(
             label="Download Template",
-            data=pd.DataFrame(np.array(img_new_palette))
-            .to_csv(index=False)
+            data=pd.DataFrame(img_new_palette_dwnld)
+            .to_csv(index=False, header=False)
             .encode("utf-8"),
             file_name="{0}_template.csv".format(img_file_name),
             mime="text/csv",
