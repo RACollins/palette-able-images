@@ -34,20 +34,39 @@ else:
 if render_elements:
     with st.sidebar:
         st.header("Settings")
-        colour_var_dict = {}
-        nColours = st.number_input(
-            "Number of colours",
-            value=3,
-            placeholder="Type a number...",
-            key="nColours",
+        custom_palette = st.toggle(
+            "Custom Palette",
+            help="If custom palette is switched off, "
+            "colours will be selected based on k-means clustering.",
         )
-        img_pbn = utils.reduce_colours(img=img_original, nColours=nColours)
-        img_pbn_info_df = utils.get_palette_info(img_pbn)
-        default_colours = [utils.rgb2hex(rgb) for rgb in img_pbn_info_df["RGB"].values]
-        for c in range(int(nColours)):
-            colour_var_dict[c] = st.color_picker(
-                f"Colour {c+1}", key=c, value=default_colours[c]
+        colour_var_dict = {}
+        if custom_palette:
+            nColours = st.number_input(
+                "Number of colours",
+                value=3,
+                placeholder="Type a number...",
+                key="nColours",
             )
+            for c in range(int(nColours)):
+                colour_var_dict[c] = st.color_picker(
+                    f"Colour {c+1}", key=c, value="#FFFFFF"
+                )
+        else:
+            nColours = st.number_input(
+                "Number of colours",
+                value=3,
+                placeholder="Type a number...",
+                key="nColours",
+            )
+            img_pbn = utils.reduce_colours(img=img_original, nColours=nColours)
+            img_pbn_info_df = utils.get_palette_info(img_pbn)
+            default_colours = [
+                utils.rgb2hex(rgb) for rgb in img_pbn_info_df["RGB"].values
+            ]
+            for c in range(int(nColours)):
+                colour_var_dict[c] = st.color_picker(
+                    f"Colour {c+1}", key=c, value=default_colours[c]
+                )
 
         st.subheader("Resize")
         width = st.number_input(

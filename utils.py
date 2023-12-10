@@ -1,4 +1,5 @@
 from PIL import Image
+import numpy as np
 import pandas as pd
 import cv2
 
@@ -27,7 +28,7 @@ def quantise_to_palette(img, palette, dither):
     p = Image.new("P", (1, 1))
 
     # Zero-pad the palette to 256 RGB colours, i.e. 768 values and apply to image
-    palette += (768 - e) * [0]
+    # palette += (768 - e) * [0]
     p.putpalette(palette)
 
     # Now quantize input image to the same palette as our little image
