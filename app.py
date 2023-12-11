@@ -14,19 +14,17 @@ st.subheader("Input image")
 img_file = st.file_uploader("Choose a file", type=["jpg", "png", "jpeg"])
 render_elements = False
 if img_file is not None:
-    file_details = {
+    original_file_details = {
         "Filename": img_file.name,
         "FileType": img_file.type,
         "FileSize": img_file.size,
     }
-    st.write(file_details)
     img_original = Image.open(img_file)
     original_width, original_height = img_original.size
-    image_details = {
+    original_image_details = {
         "Width": "{} px".format(original_width),
         "Height": "{} px".format(original_height),
     }
-    st.write(image_details)
     render_elements = True
 else:
     st.info("☝️ Upload a .jpg or .png file")
@@ -107,6 +105,9 @@ if render_elements:
     with upper_grid[0]:
         st.header("Original Image")
         st.image(img_original, use_column_width="auto")
+        ### May include later
+        # st.write(original_file_details)
+        # st.write(original_image_details)
 
     with upper_grid[1]:
         st.header("Palettised Image")
@@ -118,9 +119,12 @@ if render_elements:
             ),
             use_column_width="auto",
         )
+        ### May include later
+        # st.write(original_file_details)
+        # st.write(original_image_details)
 
     img_new_palette_info_df = utils.get_palette_info(img_new_palette)
-    st.dataframe(img_new_palette_info_df)
+    st.dataframe(img_new_palette_info_df, use_container_width=True)
 
     plot = (
         alt.Chart(img_new_palette_info_df)
